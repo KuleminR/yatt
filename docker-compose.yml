@@ -1,0 +1,12 @@
+services:
+  db:
+    image: postgres:18.1
+    container_name: db
+    shm_size: 128mb
+    env_file: ".env"
+    environment:
+      POSTGRES_USER: yatt
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: main
+    ports:
+      - 5432:5432
