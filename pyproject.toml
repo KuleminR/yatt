@@ -5,7 +5,7 @@ description = ""
 authors = [{ name = "KuleminR", email = "romankulemin07@gmail.com" }]
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = ["fastapi[standard] (>=0.128.7,<0.129.0)", "alembic (>=1.18.4,<2.0.0)", "sqlalchemy (>=2.0.46,<3.0.0)", "pydantic (>=2.12.5,<3.0.0)"]
+dependencies = ["fastapi[standard] (>=0.128.7,<0.129.0)", "alembic (>=1.18.4,<2.0.0)", "sqlalchemy (>=2.0.46,<3.0.0)", "pydantic (>=2.12.5,<3.0.0)", "psycopg2-binary (>=2.9.11,<3.0.0)"]
 
 [tool.poetry]
 packages = [{ include = "yatt", from = "src" }]

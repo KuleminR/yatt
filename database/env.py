@@ -1,9 +1,11 @@
 from logging.config import fileConfig
+from urllib import parse
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from sqlalchemy import create_engine, engine_from_config, pool
 
 from alembic import context
+
+from src.yatt.config import db_config
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -24,6 +26,10 @@ target_metadata = None
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
+
+
+_QUOTED_DATABASE_PASSWORD = parse.quote(str(db_config.password))
+SQLALCHEMY_DATABASE_URI = f"postgresql+psycopg2://{db_config.user}:{_QUOTED_DATABASE_PASSWORD}@{db_config.hostname}:{db_config.port}/{db_config.name}"
 
 
 def run_migrations_offline() -> None:
@@ -57,16 +63,10 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
+    connectable = create_engine(SQLALCHEMY_DATABASE_URI)
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()
