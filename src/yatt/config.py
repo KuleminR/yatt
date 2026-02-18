@@ -9,6 +9,8 @@ class AppEnvironmentType(Enum):
 
 
 class AppConfig(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="app_")
+
     environment: AppEnvironmentType = AppEnvironmentType.PROD
 
 
