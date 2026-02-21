@@ -1,12 +1,14 @@
+import asyncio
 from logging.config import fileConfig
 from urllib import parse
 
 from sqlalchemy import create_engine, engine_from_config, pool
 
 from alembic import context
+from sqlalchemy.ext.asyncio import create_async_engine
 
 from yatt.config import db_config
-from yatt.core import Base
+from yatt.core import Base, get_db_url
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -29,8 +31,7 @@ target_metadata = Base.metadata
 # ... etc.
 
 
-_QUOTED_DATABASE_PASSWORD = parse.quote(str(db_config.password))
-SQLALCHEMY_DATABASE_URI = f"postgresql+psycopg2://{db_config.user}:{_QUOTED_DATABASE_PASSWORD}@{db_config.hostname}:{db_config.port}/{db_config.name}"
+SQLALCHEMY_DATABASE_URI = get_db_url(db_config)
 
 
 def run_migrations_offline() -> None:
@@ -64,13 +65,23 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    connectable = create_engine(SQLALCHEMY_DATABASE_URI)
+    asyncio.run(run_async_migrations())
 
-    with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
 
-        with context.begin_transaction():
-            context.run_migrations()
+async def run_async_migrations():
+    connectable = create_async_engine(SQLALCHEMY_DATABASE_URI)
+
+    async with connectable.connect() as connection:
+        await connection.run_sync(do_run_migrations)
+
+    await connectable.dispose()
+
+
+def do_run_migrations(connection):
+    context.configure(connection=connection, target_metadata=target_metadata)
+
+    with context.begin_transaction():
+        context.run_migrations()
 
 
 if context.is_offline_mode():
