@@ -1,9 +1,13 @@
+import logging
 from uuid import UUID, uuid7
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from yatt.users.models import Password, User, UserCreateParams, UserPatchParams
 from yatt.utils import hash_password
+
+
+logger = logging.getLogger(__name__)
 
 
 async def create(db_session: AsyncSession, user_create: UserCreateParams) -> User:

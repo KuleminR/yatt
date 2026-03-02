@@ -1,17 +1,21 @@
+import logging
 from typing import Any
+
 from fastapi import FastAPI, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from yatt.config import app_config, AppEnvironmentType
+from yatt.config import app_config, config, AppEnvironmentType
 from yatt.api import api_router
 
+logger = logging.getLogger(__name__)
 
 fastapi_config: dict[str, Any] = {
     "title": "Yet Another Task Tracker",
     "description": "Simple task tracking web application",
 }
 
+logger.info(config)
 
 if app_config.environment in [AppEnvironmentType.PROD, AppEnvironmentType.TEST]:
     fastapi_config["openapi_url"] = None
