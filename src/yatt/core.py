@@ -24,7 +24,7 @@ class Base(AsyncAttrs, DeclarativeBase):
 
 
 def get_db_url(config: DBConfig) -> str:
-    return f"postgresql+asyncpg://{config.user}:{config.password}@{config.hostname}:{config.port}/{config.name}"
+    return f"postgresql+asyncpg://{config.user}:{config.password.get_secret_value()}@{config.hostname}:{config.port}/{config.name}"
 
 
 def generate_engine(config: DBConfig) -> AsyncEngine:
