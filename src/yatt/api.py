@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from yatt.users.routes import auth_router, users_router
+from yatt.users.routes import users_router
 
 
 class ErrorMessage(BaseModel):
@@ -28,5 +28,4 @@ api_router = APIRouter(
     },
 )
 
-api_router.include_router(auth_router)
 api_router.include_router(users_router)

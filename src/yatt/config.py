@@ -21,6 +21,7 @@ class AppConfig(BaseSettings):
 
     environment: AppEnvironmentType = AppEnvironmentType.PROD
     log_level: LogLevels = LogLevels.INFO
+    access_token_secret: SecretStr
 
 
 class DBConfig(BaseSettings):

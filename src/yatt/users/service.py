@@ -1,10 +1,11 @@
 import logging
+from typing import Optional
 from uuid import UUID, uuid7
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from yatt.users.models import Password, User, UserCreateParams, UserPatchParams
-from yatt.utils import hash_password
+import yatt.auth.service as auth_service
+from yatt.users.models import Login, Password, User, UserCreateParams, UserPatchParams
 
 
 logger = logging.getLogger(__name__)
@@ -15,7 +16,7 @@ async def create(db_session: AsyncSession, user_create: UserCreateParams) -> Use
 
     uuid = uuid7()
 
-    hashed_password = hash_password(user_create.password)
+    hashed_password = auth_service.hash_password(user_create.password)
 
     new_user = User(
         uuid=uuid,
@@ -61,7 +62,7 @@ async def patch(
 async def change_password(db_session: AsyncSession, user: User, new_password: Password):
     """Change password for given user"""
 
-    user.password = hash_password(new_password)
+    user.password = auth_service.hash_password(new_password)
 
     await db_session.commit()
 
@@ -72,3 +73,19 @@ async def delete(db_session: AsyncSession, user: User):
     await db_session.delete(user)
 
     await db_session.commit()
+
+
+async def authenticate_user(
+    db_session: AsyncSession, login: Login, password: Password
+) -> Optional[User]:
+    user = await get_by_login(db_session, login)
+
+    if user is None:
+        # to prevent time-based attack
+        auth_service.verify_password(password, auth_service.DUMMY_HASH)
+        return None
+
+    if not auth_service.verify_password(password, user.password):
+        return None
+
+    return user

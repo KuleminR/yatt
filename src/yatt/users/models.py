@@ -26,6 +26,7 @@ class User(Base):
 
 
 # Pydantic models
+Login = Annotated[str, Field(max_length=50)]
 Password = Annotated[str, Field(max_length=100)]
 Email = Annotated[str, Field(max_length=50)]
 
@@ -33,7 +34,7 @@ Email = Annotated[str, Field(max_length=50)]
 class UserBase(AppBaseModel):
     """Base user data model"""
 
-    login: str = Field(max_length=50)
+    login: Login
     email: Optional[Email]
 
 
