@@ -3,7 +3,7 @@ import logging
 from typing import Annotated
 
 import jwt
-from jwt.exceptions import InvalidTokenError
+from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 
@@ -24,6 +24,10 @@ def get_verified_access_token(
             raw_token,
             ACCESS_TOKEN_SECRET,
             algorithms=[ALGORITHM],
+        )
+    except ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired"
         )
     except InvalidTokenError as e:
         logger.debug(e)

@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import jwt
 import pytest
 from uuid import uuid7
@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from yatt.users.models import User
-from yatt.auth.service import verify_password
+from yatt.auth.service import ACCESS_TOKEN_SECRET, ALGORITHM, verify_password
 
 
 class TestCreateRoute:
@@ -133,6 +133,24 @@ class TestGetUserRoute:
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == expected_response
 
+    @pytest.mark.anyio
+    async def test_token_expired(
+        self, client: AsyncClient, existing_user: User, admin_token: str
+    ):
+        expected_response = {"detail": "Token expired"}
+
+        token = jwt.decode(admin_token, ACCESS_TOKEN_SECRET, algorithms=[ALGORITHM])
+        token["exp"] = datetime.now(timezone.utc) - timedelta(seconds=1)
+        expired_token = jwt.encode(token, ACCESS_TOKEN_SECRET, algorithm=ALGORITHM)
+
+        response = await client.get(
+            f"/users/{existing_user.uuid}",
+            headers={"Authorization": f"Bearer {expired_token}"},
+        )
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.json() == expected_response
+
 
 class TestChangePasswordRoute:
     @pytest.mark.anyio
@@ -242,7 +260,7 @@ class TestLoginUserRoute:
         assert access_token_data["scopes"] == ""
 
     @pytest.mark.anyio
-    async def test_invalid_login(self, client: AsyncClient):
+    async def test_invalid_login(self, client: AsyncClient, existing_user: User):
         invalid_username_form_params = {"username": "unknown", "password": "q123"}
 
         expected_response = {"detail": "Invalid credentials"}
